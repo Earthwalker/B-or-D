@@ -337,8 +337,9 @@ namespace B_or_d
         /// <returns>Whether the command was handled</returns>
         public bool HandleCommand(string command, string userAddress)
         {
-            if (string.IsNullOrWhiteSpace(command))
-                throw new ArgumentNullException("command");
+            // ensure command and userAddress are not empty or null
+            if (string.IsNullOrWhiteSpace(command) || string.IsNullOrWhiteSpace(userAddress))
+                return false;
 
             var user = Users.FirstOrDefault(u => u.Address == userAddress);
             var commandArray = command.Split(':');
