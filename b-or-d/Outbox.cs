@@ -74,7 +74,7 @@ namespace B_or_d
         public void ForwardMessage(MimeMessage message, MailboxAddress to, IEnumerable<MailboxAddress> bcc = null)
         {
             if (message == null)
-                throw new ArgumentNullException("message");
+                return;
 
             // clear the original recipients
             message.To.Clear();
@@ -101,7 +101,7 @@ namespace B_or_d
         public void SendReply(MimeMessage message, IEnumerable<MailboxAddress> from = null)
         {
             if (message == null)
-                throw new ArgumentNullException("message");
+                return;
 
             // clear the original senders
             message.From.Clear();
