@@ -4,10 +4,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Data.Entity;
-
 namespace B_or_d
 {
+    using System.Data.Entity;
+
     /// <summary>
     /// Database context
     /// </summary>
