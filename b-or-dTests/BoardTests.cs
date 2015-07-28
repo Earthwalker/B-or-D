@@ -29,7 +29,7 @@ namespace B_or_d.Tests
 
             using (Program.Context = new BoardContext())
             {
-                string normalName = "test";
+                string normalName = "Test Board " + DateTime.Now.ToString();
 
                 new Board(normalName);
                 new Board(normalName);
@@ -98,7 +98,7 @@ namespace B_or_d.Tests
             using (Program.Context = new BoardContext())
             {
                 // create a board for testing
-                var board = new Board("test");
+                var board = new Board("Test Board " + DateTime.Now.ToString());
 
                 // create some users of each role
                 string guest1 = "guest1@mail.local";
@@ -147,7 +147,7 @@ namespace B_or_d.Tests
             using (Program.Context = new BoardContext())
             {
                 // create a new board with normal name
-                var board = new Board("test");
+                var board = new Board("Test Board " + DateTime.Now.ToString());
 
                 Assert.IsNotNull(board.AddUser("member@mail.local"), "Failed to add user");
 
