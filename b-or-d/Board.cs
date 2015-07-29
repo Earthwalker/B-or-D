@@ -207,14 +207,17 @@ namespace B_or_d
         /// <param name="message">Message to post</param>
         public void Post(MimeMessage message)
         {
+            if (message == null)
+                return;
+
             // check if the user is a member
             User user = Users?.FirstOrDefault(u => u.Address == Program.GetAddress(message.From[0]));
 
             message.ReplyTo.Clear();
-            message.ReplyTo.Add(Program.FormatMailboxAddress(user.Name, Name));
+            message.ReplyTo.Add(Program.FormatMailboxAddress(user?.Name, Name));
 
             message.From.Clear();
-            message.From.Add(Program.FormatMailboxAddress(user.Name, Name));
+            message.From.Add(Program.FormatMailboxAddress(user?.Name, Name));
 
             if (user != null)
             {
