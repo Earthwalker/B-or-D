@@ -211,10 +211,10 @@ namespace B_or_d
             User user = Users?.FirstOrDefault(u => u.Address == Program.GetAddress(message.From[0]));
 
             message.ReplyTo.Clear();
-            message.ReplyTo.Add(Program.FormatMailboxAddress(Name));
+            message.ReplyTo.Add(Program.FormatMailboxAddress(user.Name, Name));
 
             message.From.Clear();
-            message.From.Add(Program.FormatMailboxAddress(Name));
+            message.From.Add(Program.FormatMailboxAddress(user.Name, Name));
 
             if (user != null)
             {
@@ -245,7 +245,6 @@ namespace B_or_d
                                                           Program.FormatMailboxAddress(Name),
                                                           GetUsersOfRole(UserRole.Guest).Select(u => u.MailboxAddress));
                         }
-
                         return;
                     case UserRole.Mod: // unrestricted posting and sometimes on behalf of non-verified users
                         // check if this is a mod-approved message
@@ -272,6 +271,8 @@ namespace B_or_d
                                 // we no longer need to keep track of this message
                                 modHandledMessages.Remove(message.MessageId);
                             }
+                            else
+                                Trace.TraceError("Sender " + message.Sender.Address + " does not exist on this board");
                         }
                         else
                         {
@@ -293,7 +294,7 @@ namespace B_or_d
             }
 
             // notify the owner that this is a private message and not a post
-            message.From[0].Name = "Private Message";
+            message.Subject = "PM: " + message.Subject;
 
             // send the message out to owners
             Program.Outbox.ForwardMessage(
