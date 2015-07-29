@@ -360,6 +360,16 @@ namespace B_or_d
         }
 
         /// <summary>
+        /// Save changes to the underlying database
+        /// </summary>
+        private static void SaveDB()
+        {
+            // only save if the program is running and not just testing
+            if (Running)
+                Context.SaveChanges();
+        }
+
+        /// <summary>
         /// Handles messages
         /// </summary>
         private static void HandleMessages()
@@ -375,10 +385,15 @@ namespace B_or_d
                     var board = Context.Boards?.Find(GetSender(to));
 
                     if (board == null)
+                    {
                         HandleCommand(message.Subject, GetAddress(message.From[0]));
+                        SaveDB();
+                    }
                     else
                     {
-                        if (!board.HandleCommand(message.Subject, GetAddress(message.From[0])))
+                        if (board.HandleCommand(message.Subject, GetAddress(message.From[0])))
+                            SaveDB();
+                        else
                         {
                             if (message.Subject.ToUpperInvariant() == "ADMIN")
                             {
@@ -395,6 +410,7 @@ namespace B_or_d
                                 {
                                     // new post
                                     board.Post(message);
+                                    SaveDB();
                                 }
                                 else
                                 {
@@ -403,6 +419,7 @@ namespace B_or_d
                                     {
                                         // report the user
                                         board.Report(message.Sender.Address);
+                                        SaveDB();
                                     }
                                     else
                                     {
