@@ -265,18 +265,18 @@ namespace B_or_d.Tests
                 Assert.IsNotNull(owner, "Failed to add owner");
                 owner.Role = UserRole.Owner;
 
-                Assert.IsFalse(board.HandleCommand(string.Empty, subscriberAddress), "Empty command");
+                Assert.IsFalse(board.HandleCommand(string.Empty, subscriberAddress), "Empty command not handled correctly");
                 Assert.IsFalse(board.HandleCommand("rules", string.Empty), "Empty user address");
 
                 // join
-                Assert.IsTrue(board.HandleCommand("join", subscriberAddress), "Join command");
+                Assert.IsTrue(board.HandleCommand("join", subscriberAddress), "Join command not handled correctly");
                 Assert.IsNotNull(board.Users?.FirstOrDefault(u => u.Address == subscriberAddress), "Join command failed to add user");
 
                 // rules
-                Assert.IsTrue(board.HandleCommand("rules", subscriberAddress), "Rules command");
+                Assert.IsTrue(board.HandleCommand("rules", subscriberAddress), "Rules command not handled correctly");
 
                 // leave
-                Assert.IsTrue(board.HandleCommand("leave", subscriberAddress), "Leave command");
+                Assert.IsTrue(board.HandleCommand("leave", subscriberAddress), "Leave command not handled correctly");
                 Assert.IsNull(board.Users?.FirstOrDefault(u => u.Address == subscriberAddress), "Leave command failed to remove user");
 
                 // add user for testing
@@ -284,60 +284,115 @@ namespace B_or_d.Tests
                 Assert.IsNotNull(user, "Failed to add user");
 
                 // points
-                Assert.IsFalse(board.HandleCommand("points", subscriberAddress), "Points command for non-owner");
-                Assert.IsFalse(board.HandleCommand("points", ownerAddress), "Points command for owner without value");
-                Assert.IsFalse(board.HandleCommand("points:non-number", ownerAddress), "Points command for owner with bad value");
-                Assert.IsTrue(board.HandleCommand("points:99", ownerAddress), "Points command for owner");
-                Assert.AreEqual(board.Points, 99, "Points command failed to change points");
+                var points = board.Points;
+
+                Assert.IsTrue(board.HandleCommand("points", subscriberAddress), "Points command for non-owner not handled correctly");
+                Assert.AreEqual(board.Points, points, "Points command for non-owner changed value");
+
+                Assert.IsTrue(board.HandleCommand("points", ownerAddress), "Points command for owner without value not handled correctly");
+                Assert.AreEqual(board.Points, points, "Points command for owner without value changed value");
+
+                Assert.IsTrue(board.HandleCommand("points:non-number", ownerAddress), "Points command for owner with bad value not handled correctly");
+                Assert.AreEqual(board.Points, points, "Points command for owner with bad value changed value");
+
+                Assert.IsTrue(board.HandleCommand("points:" + (points + 1).ToString(), ownerAddress), "Points command for owner not handled correctly");
+                Assert.AreEqual(board.Points, points + 1, "Points command for owner failed to change value");
 
                 // defaultrole
-                Assert.IsFalse(board.HandleCommand("defaultrole", subscriberAddress), "Default Role command for non-owner");
-                Assert.IsFalse(board.HandleCommand("defaultrole", ownerAddress), "Default Role command for owner without value");
-                Assert.IsFalse(board.HandleCommand("defaultrole:none", ownerAddress), "Default Role command for owner with bad value");
-                Assert.IsTrue(board.HandleCommand("defaultrole:guest", ownerAddress), "Default Role command for owner");
-                Assert.AreEqual(board.DefaultUserRole, UserRole.Guest, "Default Role command failed to change default role");
+                var defaultRole = board.DefaultUserRole;
+
+                Assert.IsTrue(board.HandleCommand("defaultrole", subscriberAddress), "Default Role command for non-owner not handled correctly");
+                Assert.AreEqual(board.DefaultUserRole, defaultRole, "Default Role command for non-owner changed value");
+
+                Assert.IsTrue(board.HandleCommand("defaultrole", ownerAddress), "Default Role command for owner without value not handled correctly");
+                Assert.AreEqual(board.DefaultUserRole, defaultRole, "Default Role command for owner without value changed value");
+
+                Assert.IsTrue(board.HandleCommand("defaultrole:none", ownerAddress), "Default Role command for owner with bad value not handled correctly");
+                Assert.AreEqual(board.DefaultUserRole, defaultRole, "Default Role command for owner with bad value changed value");
+
+                Assert.IsTrue(board.HandleCommand("defaultrole:guest", ownerAddress), "Default Role command for owner not handled correctly");
+                Assert.AreEqual(board.DefaultUserRole, UserRole.Guest, "Default Role command for owner failed to change value");
 
                 // tags
-                board.HandleCommand("tags:tag1,tag2", subscriberAddress);
-                Assert.AreEqual(board.Tags.Count, 0, "Tags command for non-owner");
+                Assert.IsTrue(board.HandleCommand("tags:tag1,tag2", subscriberAddress), "Tags command for non-owner not handled correctly");
+                Assert.AreEqual(board.Tags.Count, 0, "Tags command for non-owner changed value");
 
-                board.HandleCommand("tags", ownerAddress);
-                Assert.AreEqual(board.Tags.Count, 0, "Tags command for owner without value");
+                Assert.IsTrue(board.HandleCommand("tags", ownerAddress), "Tags command for owner without value not handled correctly");
+                Assert.AreEqual(board.Tags.Count, 0, "Tags command for owner without value changed value");
 
-                board.HandleCommand("tags:,", ownerAddress);
-                Assert.AreEqual(board.Tags.Count, 0, "Tags command for owner with bad value");
+                Assert.IsTrue(board.HandleCommand("tags:,", ownerAddress), "Tags command for owner with bad value not handled correctly");
+                Assert.AreEqual(board.Tags.Count, 0, "Tags command for owner with bad value changed value");
 
-                Assert.IsTrue(board.HandleCommand("tags:tag1,tag2", ownerAddress), "Tags command for owner");
-                Assert.IsTrue(board.Tags.SetEquals(new string[]{ "tag1", "tag2"}), "Default Role command failed to change tags");
+                Assert.IsTrue(board.HandleCommand("tags:tag1,tag2", ownerAddress), "Tags command for owner not handled correctly");
+                Assert.IsTrue(board.Tags.SetEquals(new string[]{ "tag1", "tag2"}), "Tags command for owner failed to change value");
 
                 // guest
-                Assert.IsFalse(board.HandleCommand("guest", subscriberAddress), "Guest command for non-owner");
-                Assert.IsFalse(board.HandleCommand("guest", ownerAddress), "Guest command for owner without value");
-                Assert.IsFalse(board.HandleCommand("guest:none", ownerAddress), "Guest command for owner with bad value");
-                Assert.IsTrue(board.HandleCommand("guest:" + user.Name, ownerAddress), "Guest command for owner");
-                Assert.IsNull(board.Users?.FirstOrDefault(u => u.Address == subscriberAddress && u.Role == UserRole.Guest), "Guest command failed to change role");
+                user.Role = UserRole.Subscriber;
+                Assert.IsTrue(board.HandleCommand("guest", subscriberAddress), "Guest command for non-owner not handled correctly");
+                Assert.AreNotEqual(user.Role, UserRole.Guest, "Guest command for non-owner changed value");
+
+                user.Role = UserRole.Subscriber;
+                Assert.IsTrue(board.HandleCommand("guest", ownerAddress), "Guest command for owner without value not handled correctly");
+                Assert.AreNotEqual(user.Role, UserRole.Guest, "Guest command for owner without value changed value");
+
+                user.Role = UserRole.Subscriber;
+                Assert.IsTrue(board.HandleCommand("guest:none", ownerAddress), "Guest command for owner with bad value not handled correctly");
+                Assert.AreNotEqual(user.Role, UserRole.Guest, "Guest command for owner with bad value changed value");
+
+                user.Role = UserRole.Subscriber;
+                Assert.IsTrue(board.HandleCommand("guest:" + user.Name, ownerAddress), "Guest command for owner not handled correctly");
+                Assert.AreEqual(user.Role, UserRole.Guest, "Guest command for owner failed to change value");
 
                 // subscriber
-                Assert.IsFalse(board.HandleCommand("subscriber", subscriberAddress), "Subscriber command for non-owner");
-                Assert.IsFalse(board.HandleCommand("subscriber", ownerAddress), "Subscriber command for owner without value");
-                Assert.IsFalse(board.HandleCommand("subscriber:none", ownerAddress), "Subscriber command for owner with bad value");
-                Assert.IsTrue(board.HandleCommand("subscriber:" + user.Name, ownerAddress), "Subscriber command for owner");
-                Assert.IsNull(board.Users?.FirstOrDefault(u => u.Address == subscriberAddress && u.Role == UserRole.Subscriber), "Subscriber command failed to change role");
+                user.Role = UserRole.Guest;
+                Assert.IsTrue(board.HandleCommand("subscriber", subscriberAddress), "Subscriber command for non-owner not handled correctly");
+                Assert.AreNotEqual(user.Role, UserRole.Subscriber, "Subscriber command for non-owner changed value");
+
+                user.Role = UserRole.Guest;
+                Assert.IsTrue(board.HandleCommand("subscriber", ownerAddress), "Subscriber command for owner without value not handled correctly");
+                Assert.AreNotEqual(user.Role, UserRole.Subscriber, "Subscriber command for owner without value changed value");
+
+                user.Role = UserRole.Guest;
+                Assert.IsTrue(board.HandleCommand("subscriber:none", ownerAddress), "Subscriber command for owner with bad value not handled correctly");
+                Assert.AreNotEqual(user.Role, UserRole.Subscriber, "Subscriber command for owner with bad value changed value");
+
+                user.Role = UserRole.Guest;
+                Assert.IsTrue(board.HandleCommand("subscriber:" + user.Name, ownerAddress), "Subscriber command for owner not handled correctly");
+                Assert.AreEqual(user.Role, UserRole.Subscriber, "Subscriber command for owner failed to change value");
 
                 // mod
-                Assert.IsFalse(board.HandleCommand("mod", subscriberAddress), "Mod command for non-owner");
-                Assert.IsFalse(board.HandleCommand("mod", ownerAddress), "Mod command for owner without value");
-                Assert.IsFalse(board.HandleCommand("mod:none", ownerAddress), "Mod command for owner with bad value");
-                Assert.IsTrue(board.HandleCommand("mod:" + user.Name, ownerAddress), "Mod command for owner");
-                Assert.IsNull(board.Users?.FirstOrDefault(u => u.Address == subscriberAddress && u.Role == UserRole.Mod), "Mod command failed to change role");
+                user.Role = UserRole.Subscriber;
+                Assert.IsTrue(board.HandleCommand("mod", subscriberAddress), "Mod command for non-owner not handled correctly");
+                Assert.AreNotEqual(user.Role, UserRole.Mod, "Mod command for non-owner changed value");
+
+                user.Role = UserRole.Subscriber;
+                Assert.IsTrue(board.HandleCommand("mod", ownerAddress), "Mod command for owner without value not handled correctly");
+                Assert.AreNotEqual(user.Role, UserRole.Mod, "Mod command for owner without value changed value");
+
+                user.Role = UserRole.Subscriber;
+                Assert.IsTrue(board.HandleCommand("mod:none", ownerAddress), "Mod command for owner with bad value not handled correctly");
+                Assert.AreNotEqual(user.Role, UserRole.Mod, "Mod command for owner with bad value changed value");
+
+                user.Role = UserRole.Subscriber;
+                Assert.IsTrue(board.HandleCommand("mod:" + user.Name, ownerAddress), "Mod command for owner not handled correctly");
+                Assert.AreEqual(user.Role, UserRole.Mod, "Mod command for owner failed to change value");
 
                 // owner
-                Assert.IsFalse(board.HandleCommand("owner", subscriberAddress), "Owner command for non-owner");
-                Assert.IsFalse(board.HandleCommand("owner", ownerAddress), "Owner command for owner without value");
-                Assert.IsFalse(board.HandleCommand("owner:none", ownerAddress), "Owner command for owner with bad value");
-                Assert.IsTrue(board.HandleCommand("owner:" + user.Name, ownerAddress), "Owner command for owner");
-                Assert.IsNull(board.Users?.FirstOrDefault(u => u.Address == subscriberAddress && u.Role == UserRole.Owner), "Owner command failed to change role");
+                user.Role = UserRole.Subscriber;
+                Assert.IsTrue(board.HandleCommand("owner", subscriberAddress), "Owner command for non-owner not handled correctly");
+                Assert.AreNotEqual(user.Role, UserRole.Owner, "Owner command for non-owner changed value");
 
+                user.Role = UserRole.Subscriber;
+                Assert.IsTrue(board.HandleCommand("owner", ownerAddress), "Owner command for owner without value not handled correctly");
+                Assert.AreNotEqual(user.Role, UserRole.Owner, "Owner command for owner without value changed value");
+
+                user.Role = UserRole.Subscriber;
+                Assert.IsTrue(board.HandleCommand("owner:none", ownerAddress), "Owner command for owner with bad value not handled correctly");
+                Assert.AreNotEqual(user.Role, UserRole.Owner, "Owner command for owner with bad value changed value");
+
+                user.Role = UserRole.Subscriber;
+                Assert.IsTrue(board.HandleCommand("owner:" + user.Name, ownerAddress), "Owner command for owner not handled correctly");
+                Assert.AreEqual(user.Role, UserRole.Owner, "Owner command for owner failed to change value");
             }
         }
     }
