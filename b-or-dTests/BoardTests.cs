@@ -298,11 +298,17 @@ namespace B_or_d.Tests
                 Assert.AreEqual(board.DefaultUserRole, UserRole.Guest, "Default Role command failed to change default role");
 
                 // tags
-                Assert.IsFalse(board.HandleCommand("tags", subscriberAddress), "Tags command for non-owner");
-                Assert.IsFalse(board.HandleCommand("tags", ownerAddress), "Tags command for owner without value");
-                Assert.IsFalse(board.HandleCommand("tags:,", ownerAddress), "Tags command for owner with bad value");
+                board.HandleCommand("tags:tag1,tag2", subscriberAddress);
+                Assert.AreEqual(board.Tags.Count, 0, "Tags command for non-owner");
+
+                board.HandleCommand("tags", ownerAddress);
+                Assert.AreEqual(board.Tags.Count, 0, "Tags command for owner without value");
+
+                board.HandleCommand("tags:,", ownerAddress);
+                Assert.AreEqual(board.Tags.Count, 0, "Tags command for owner with bad value");
+
                 Assert.IsTrue(board.HandleCommand("tags:tag1,tag2", ownerAddress), "Tags command for owner");
-                Assert.AreEqual(board.Tags, new HashSet<string>(new string[]{ "tag1", "tag2" }), "Default Role command failed to change tags");
+                Assert.IsTrue(board.Tags.SetEquals(new string[]{ "tag1", "tag2"}), "Default Role command failed to change tags");
 
                 // guest
                 Assert.IsFalse(board.HandleCommand("guest", subscriberAddress), "Guest command for non-owner");
