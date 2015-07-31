@@ -70,24 +70,30 @@ namespace B_or_d
         /// </summary>
         /// <param name="message">Message to send</param>
         /// <param name="to">Recipient off the message</param>
-        /// <param name="bcc">Private recipients</param>
-        public void ForwardMessage(MimeMessage message, MailboxAddress to, IEnumerable<MailboxAddress> bcc = null)
+        public void ForwardMessage(MimeMessage message, MailboxAddress to)
         {
-            if (message == null)
+            ForwardMessage(message, new List<MailboxAddress>() { to });
+        }
+
+        /// <summary>
+        /// Forwards a message to more than one recipient
+        /// </summary>
+        /// <param name="message">Message to send</param>
+        /// <param name="to">Recipient off the message</param>
+        public void ForwardMessage(MimeMessage message, List<MailboxAddress> to)
+        {
+            if (message == null || to == null)
                 return;
 
             // clear the original recipients
             message.To.Clear();
-
-            // set the recipient
-            message.To.Add(to);
-
-            // clear the bcc
             message.Bcc.Clear();
 
-            // set the bcc if any
-            if (bcc != null)
-                message.Bcc.AddRange(bcc);
+            // set the recipient
+            if (to.Count == 1)
+                message.To.Add(to[0]);
+            else
+                message.Bcc.AddRange(to);
 
             // add the message to the send queue
             messages.Enqueue(message);

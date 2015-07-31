@@ -398,10 +398,7 @@ namespace B_or_d
                             if (message.Subject.ToUpperInvariant() == "ADMIN")
                             {
                                 // sends the message to the moderators and owners
-                                Outbox.ForwardMessage(
-                                                      message,
-                                                      FormatMailboxAddress(board.Name),
-                                                      board.GetUsersOfRole(UserRole.Mod).Select(u => u.MailboxAddress));
+                                Outbox.ForwardMessage(message, board.GetUsersOfRole(UserRole.Mod).Select(u => u.MailboxAddress).ToList());
 
                             }
                             else
@@ -424,10 +421,7 @@ namespace B_or_d
                                     else
                                     {
                                         // forward to the mods so they can validate the report
-                                        Outbox.ForwardMessage(
-                                                              message,
-                                                              FormatMailboxAddress(board.Name),
-                                                              board.GetUsersOfRole(UserRole.Mod).Select(u => u.MailboxAddress));
+                                        Outbox.ForwardMessage(message, board.GetUsersOfRole(UserRole.Mod).Select(u => u.MailboxAddress).ToList());
                                     }
                                 }
                             }

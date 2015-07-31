@@ -244,9 +244,7 @@ namespace B_or_d
                         else
                         {
                             // send the message out to everyone
-                            Program.Outbox.ForwardMessage(message,
-                                                          Program.FormatMailboxAddress(Name),
-                                                          GetUsersOfRole(UserRole.Guest).Select(u => u.MailboxAddress));
+                            Program.Outbox.ForwardMessage(message, GetUsersOfRole(UserRole.Guest).Select(u => u.MailboxAddress).ToList());
                         }
                         return;
                     case UserRole.Mod: // unrestricted posting and sometimes on behalf of non-verified users
@@ -280,18 +278,13 @@ namespace B_or_d
                         else
                         {
                             // send the message out to everyone
-                            Program.Outbox.ForwardMessage(message,
-                                                          Program.FormatMailboxAddress(Name),
-                                                          GetUsersOfRole(UserRole.Guest).Select(u => u.MailboxAddress));
+                            Program.Outbox.ForwardMessage(message, GetUsersOfRole(UserRole.Guest).Select(u => u.MailboxAddress).ToList());
                         }
 
                         return;
                     case UserRole.Owner:
                         // send the message out to owners
-                        Program.Outbox.ForwardMessage(
-                                                      message,
-                                                      Program.FormatMailboxAddress(Name),
-                                                      GetUsersOfRole(UserRole.Owner).Select(u => u.MailboxAddress));
+                        Program.Outbox.ForwardMessage(message, GetUsersOfRole(UserRole.Owner).Select(u => u.MailboxAddress).ToList());
                         return;
                 }
             }
@@ -300,10 +293,7 @@ namespace B_or_d
             message.Subject = "PM: " + message.Subject;
 
             // send the message out to owners
-            Program.Outbox.ForwardMessage(
-                                          message,
-                                          Program.FormatMailboxAddress(Name),
-                                          GetUsersOfRole(UserRole.Owner).Select(u => u.MailboxAddress));
+            Program.Outbox.ForwardMessage(message, GetUsersOfRole(UserRole.Owner).Select(u => u.MailboxAddress).ToList());
         }
 
         /// <summary>
