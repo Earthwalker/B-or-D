@@ -451,7 +451,7 @@ namespace B_or_d
                     if (target != null)
                     {
                         UserRole newRoll;
-                        if (Enum.TryParse(commandArray[1], true, out newRoll))
+                        if (Enum.TryParse(commandArray[0], true, out newRoll))
                             target.Role = newRoll;
                     }
 
