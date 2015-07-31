@@ -436,7 +436,7 @@ namespace B_or_d
                     return false;
                 case "TAGS":
                     // sets the board's tags
-                    Tags = new HashSet<string>(commandArray[1].Split(','));
+                    Tags = new HashSet<string>(commandArray[1].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
                     return true;
                 case "GUEST":
                 case "SUBSCRIBER":
