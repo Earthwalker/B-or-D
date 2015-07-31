@@ -346,11 +346,8 @@ namespace B_or_d
             {
                 if (HandleNonOwnerCommand(command, user))
                     return true;
-                if (user.Role == UserRole.Owner)
-                {
-                    if (HandleOwnerCommand(commandArray))
-                        return true;
-                }
+                if (HandleOwnerCommand(commandArray, user.Role))
+                    return true;
             }
             else
                 return true;
@@ -408,14 +405,15 @@ namespace B_or_d
         /// Handles owner commands
         /// </summary>
         /// <param name="commandArray">User commands</param>
+        /// <param name="role">User role of caller</param>
         /// <returns>Whether the command was handled</returns>
-        private bool HandleOwnerCommand(string[] commandArray)
+        private bool HandleOwnerCommand(string[] commandArray, UserRole role)
         {
             switch (commandArray[0].ToUpperInvariant())
             {
                 case "POINTS":
                     // sets the board's point threshold for posting without verification
-                    if (commandArray.Length == 1)
+                    if (commandArray.Length == 1 || role != UserRole.Owner)
                         return true;
 
                     int points;
@@ -425,17 +423,17 @@ namespace B_or_d
                     return true;
                 case "DEFAULTROLE":
                     // sets the board's default role
-                    if (commandArray.Length == 1)
+                    if (commandArray.Length == 1 || role != UserRole.Owner)
                         return true;
 
-                    UserRole role;
-                    if (Enum.TryParse(commandArray[1], true, out role))
-                        DefaultUserRole = role;
+                    UserRole newRole;
+                    if (Enum.TryParse(commandArray[1], true, out newRole))
+                        DefaultUserRole = newRole;
 
                     return true;
                 case "TAGS":
                     // sets the board's tags
-                    if (commandArray.Length == 1)
+                    if (commandArray.Length == 1 || role != UserRole.Owner)
                         return true;
 
                     Tags = new HashSet<string>(commandArray[1].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
@@ -445,7 +443,7 @@ namespace B_or_d
                 case "MOD":
                 case "OWNER":
                     // makes a user an owner
-                    if (commandArray.Length == 1)
+                    if (commandArray.Length == 1 || role != UserRole.Owner)
                         return true;
 
                     var target = Users.FirstOrDefault(u => u.Name == commandArray[1]);
