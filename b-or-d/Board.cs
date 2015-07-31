@@ -219,6 +219,8 @@ namespace B_or_d
             message.From.Clear();
             message.From.Add(Program.FormatMailboxAddress(user?.Name, Name));
 
+            message.Sender = new MailboxAddress(string.Empty, string.Empty);
+
             if (user != null)
             {
                 switch (user.Role)
@@ -238,6 +240,9 @@ namespace B_or_d
                             // record who is handling this for future reference
                             modHandledMessages.Add(message.MessageId, mod);
 
+                            // set the sender to the user's name
+                            message.Sender = new MailboxAddress(user.Name, string.Empty);
+
                             // forward the message
                             Program.Outbox.ForwardMessage(message, Program.FormatMailboxAddress(mod));
                         }
@@ -249,9 +254,9 @@ namespace B_or_d
                         return;
                     case UserRole.Mod: // unrestricted posting and sometimes on behalf of non-verified users
                         // check if this is a mod-approved message
-                        if (message.Sender.Address != user.Address)
+                        if (message.Sender.Name != user.Name)
                         {
-                            var sender = Users.FirstOrDefault(u => u.Address == message.Sender.Address);
+                            var sender = Users.FirstOrDefault(u => u.Name == message.Sender.Name);
 
                             if (sender != null)
                             {
