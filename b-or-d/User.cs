@@ -103,21 +103,21 @@ namespace B_or_d
         /// </summary>
         public void GenerateName()
         {
-            foreach (var adjective in Program.Adjectives)
-            {
-                foreach (var noun in Program.Nouns)
-                {
-                    Name = adjective + '_' + noun;
+            Random rng = new Random();
 
-                    if (Program.Context.Users?.FirstOrDefault(u => u.Name == Name) == null)
-                    {
-                        Console.WriteLine("Generated new user name " + Name);
-                        return;
-                    }
+            // NOTE: this while loop could pose a problem
+            while (true)
+            { 
+                // set the name to a random adjective and noun
+                Name = Program.Adjectives[rng.Next(Program.Adjectives.Count-1)] + '_' + Program.Nouns[rng.Next(Program.Nouns.Count - 1)];
+
+                // make sure the generated name is not already taken
+                if (Program.Context.Users.Local.FirstOrDefault(u => u.Name == Name) == null)
+                {
+                    Console.WriteLine("Generated new user name " + Name);
+                    return;
                 }
             }
-
-            throw new NotSupportedException("No available user names");
         }
     }
 }

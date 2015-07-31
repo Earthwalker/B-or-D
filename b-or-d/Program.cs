@@ -209,16 +209,8 @@ namespace B_or_d
                 throw new FileNotFoundException("File containing nouns", "nounsFileName");
 
             // read from the files
-            var adjectiveList = File.ReadAllLines(adjectivesFileName).ToList();
-            var nounList = File.ReadAllLines(nounsFileName).ToList();
-
-            // shuffle the lists to give a little bit more randomness
-            adjectiveList.Shuffle();
-            nounList.Shuffle();
-
-            // put our newly created lists into our collections
-            Adjectives = new Collection<string>(adjectiveList);
-            Nouns = new Collection<string>(nounList);
+            Adjectives = new Collection<string>(File.ReadAllLines(adjectivesFileName).ToList());
+            Nouns = new Collection<string>(File.ReadAllLines(nounsFileName).ToList());
 
             Console.WriteLine("Loaded word lists from " + adjectivesFileName + " and " + nounsFileName);
         }
