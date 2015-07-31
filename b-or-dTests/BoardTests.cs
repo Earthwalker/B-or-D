@@ -9,7 +9,9 @@ namespace B_or_d.Tests
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Mail;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using MimeKit;
 
     /// <summary>
     /// Tests board methods
@@ -127,12 +129,97 @@ namespace B_or_d.Tests
             }
         }
 
-        /*[TestMethod]
+        /// <summary>
+        /// Tests posting
+        /// </summary>
+        [TestMethod]
         public void PostTest()
         {
+            Program.LoadConfig();
+            Program.PopulateWordlists(string.Empty, string.Empty);
 
+            using (Program.Context = new BoardContext())
+            {
+                // create a board for testing
+                var board = new Board("Test Board " + DateTime.Now.ToString());
 
-        }*/
+                // add an owner
+                Assert.IsNotNull(board.AddUser("owner@mail.local"), "Failed to add owner");
+
+                // create new message
+                var originalMessage = new MailMessage("user@mail.local", Program.FormatMailboxAddress(board.Name).Address, "Test", string.Empty);
+
+                // passed  message
+                MimeMessage message;
+
+                try
+                {
+                    // null message
+                    board.Post(null);
+                }
+                catch
+                {
+                    Assert.Fail("Null message");
+                }
+
+                // non-member sender
+                message = MimeMessage.CreateFromMailMessage(originalMessage);
+                board.Post(message);
+                Assert.IsTrue(Program.Outbox.Messages.Dequeue().Subject == "PM: Test", "Non-member sender");
+
+                // add user
+                var user = board.AddUser("user@mail.local");
+                Assert.IsNotNull(user, "Failed to add user");
+                user.Role = UserRole.Guest;
+
+                // guest post
+                message = MimeMessage.CreateFromMailMessage(originalMessage);
+                board.Post(message);
+                Assert.IsTrue(Program.Outbox.Messages.Dequeue().Subject == "PM: Test", "Guest post");
+
+                // unverified subscriber post
+                user.Role = UserRole.Subscriber;
+                message = MimeMessage.CreateFromMailMessage(originalMessage);
+                board.Post(message);
+                Assert.IsTrue(Program.GetAddress(Program.Outbox.Messages.Dequeue().To.First()) == "owner@mail.local", "Unverified subscriber post");
+
+                // verified subscriber post
+                user.Points = board.Points;
+                message = MimeMessage.CreateFromMailMessage(originalMessage);
+                board.Post(message);
+                Assert.IsTrue(Program.Outbox.Messages.Dequeue().Subject == "Test", "Verified subscriber post");
+
+                // mod post
+                user.Role = UserRole.Mod;
+                message = MimeMessage.CreateFromMailMessage(originalMessage);
+                board.Post(message);
+                Assert.IsTrue(Program.Outbox.Messages.Dequeue().Subject == "Test", "Mod post");
+
+                // mod with incorrect sender
+                message = MimeMessage.CreateFromMailMessage(originalMessage);
+                message.Sender.Name = "bad";
+                board.Post(message);
+                Assert.IsTrue(Program.Outbox.Messages.Dequeue().Subject == "Test", "Mod with incorrect sender");
+
+                // mod with correct sender with forwarded message
+                message = MimeMessage.CreateFromMailMessage(originalMessage);
+                message.Sender = new MailboxAddress(user.Name, string.Empty);
+                board.Post(message);
+                Assert.IsTrue(user.Points == board.Points + 1, "Mod with correct sender with forwarded message");
+
+                // mod with correct sender with reply message
+                message = MimeMessage.CreateFromMailMessage(originalMessage);
+                message.ReplyTo.Add(message.From[0]);
+                board.Post(message);
+                Assert.IsTrue(user.Points == board.Points - 1, "Mod with correct sender with reply message");
+
+                // owner post
+                user.Role = UserRole.Owner;
+                message = MimeMessage.CreateFromMailMessage(originalMessage);
+                board.Post(message);
+                Assert.IsTrue(Program.Outbox.Messages.Dequeue().Subject == "Test", "Owner post");
+            }
+        }
 
         /// <summary>
         /// Tests reporting a user

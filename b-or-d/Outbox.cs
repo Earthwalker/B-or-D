@@ -26,7 +26,7 @@ namespace B_or_d
         /// <summary>
         /// Messages to be sent
         /// </summary>
-        private Queue<MimeMessage> messages = new Queue<MimeMessage>();
+        public Queue<MimeMessage> Messages { get; private set; } = new Queue<MimeMessage>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Outbox"/> class.
@@ -62,7 +62,7 @@ namespace B_or_d
         public void SendMessage(MimeMessage message)
         {
             // add the message to the send queue
-            messages.Enqueue(message);
+            Messages.Enqueue(message);
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace B_or_d
                 message.Bcc.AddRange(to);
 
             // add the message to the send queue
-            messages.Enqueue(message);
+            Messages.Enqueue(message);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace B_or_d
             message.To.AddRange(message.From);
 
             // add the message to the send queue
-            messages.Enqueue(message);
+            Messages.Enqueue(message);
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace B_or_d
         /// <param name="e">Event arguments</param>
         public void SendMessages(object source, ElapsedEventArgs e)
         {
-            if (messages.Count == 0)
+            if (Messages.Count == 0)
             {
                 // start the timer again
                 timer?.Start();
@@ -161,7 +161,7 @@ namespace B_or_d
                 return;
             }
 
-            var messageNum = messages.Count;
+            var messageNum = Messages.Count;
 
             // send all messages in the send queue
             using (SmtpClient client = new SmtpClient())
@@ -171,7 +171,7 @@ namespace B_or_d
 
                 // send each message in the queue
                 for (int i = 0; i < messageNum; i++)
-                    client.Send(messages.Dequeue());
+                    client.Send(Messages.Dequeue());
 
                 client.Disconnect(true);
             }
