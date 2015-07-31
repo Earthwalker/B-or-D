@@ -411,31 +411,33 @@ namespace B_or_d
         /// <returns>Whether the command was handled</returns>
         private bool HandleOwnerCommand(string[] commandArray)
         {
-            if (commandArray.Length == 1)
-                return false;
-
             switch (commandArray[0].ToUpperInvariant())
             {
                 case "POINTS":
                     // sets the board's point threshold for posting without verification
+                    if (commandArray.Length == 1)
+                        return true;
+
                     int points;
                     if (int.TryParse(commandArray[1], out points))
-                    {
                         Points = points;
-                        return true;
-                    }
-                    return false;
+
+                    return true;
                 case "DEFAULTROLE":
                     // sets the board's default role
+                    if (commandArray.Length == 1)
+                        return true;
+
                     UserRole role;
                     if (Enum.TryParse(commandArray[1], true, out role))
-                    {
                         DefaultUserRole = role;
-                        return true;
-                    }
-                    return false;
+
+                    return true;
                 case "TAGS":
                     // sets the board's tags
+                    if (commandArray.Length == 1)
+                        return true;
+
                     Tags = new HashSet<string>(commandArray[1].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
                     return true;
                 case "GUEST":
@@ -443,19 +445,19 @@ namespace B_or_d
                 case "MOD":
                 case "OWNER":
                     // makes a user an owner
+                    if (commandArray.Length == 1)
+                        return true;
+
                     var target = Users.FirstOrDefault(u => u.Name == commandArray[1]);
 
                     if (target != null)
                     {
                         UserRole newRoll;
                         if (Enum.TryParse(commandArray[1], true, out newRoll))
-                        {
                             target.Role = newRoll;
-                            return true;
-                        }
                     }
 
-                    return false;
+                    return true;
             }
 
             return false;
