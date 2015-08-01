@@ -333,130 +333,117 @@ namespace B_or_d
         /// <param name="command">User command</param>
         /// <param name="userAddress">User address calling the command</param>
         /// <returns>Whether the command was handled</returns>
-        public bool HandleCommand(string command, string userAddress)
+        public bool HandleMessage(MimeMessage message)
         {
-            // ensure command and userAddress are not empty or null
-            if (string.IsNullOrWhiteSpace(command) || string.IsNullOrWhiteSpace(userAddress))
+            // ensure message is not null
+            if (message == null)
                 return false;
 
-            var user = Users.FirstOrDefault(u => u.Address == userAddress);
-            var commandArray = command.Split(':');
+            // get the user calling the command
+            var user = Users.FirstOrDefault(u => u.Address == Program.GetAddress(message.From[0]));
+            var commands = message.Subject.ToUpperInvariant().Split(':');
 
-            if (!HandleGeneralCommand(commandArray[0], userAddress) && user != null)
-            {
-                if (HandleNonOwnerCommand(command, user))
-                    return true;
-                if (HandleOwnerCommand(commandArray, user.Role))
-                    return true;
-            }
-            else
-                return true;
-
-            return false;
-        }
-
-        /// <summary>
-        /// Handles general commands
-        /// </summary>
-        /// <param name="command">User command</param>
-        /// <param name="userAddress">User address calling the command</param>
-        /// <returns>Whether the command was handled</returns>
-        private bool HandleGeneralCommand(string command, string userAddress)
-        {
-            switch (command.ToUpperInvariant())
+            switch (commands[0])
             {
                 case "JOIN":
                     // joins the selected board
-                    AddUser(userAddress);
+                    AddUser(user.Address);
 
-                    // send the reply message
+                    // send the rules to the new user
                     Program.Outbox.SendReply(Program.LoadMailMessage(Name + "_rules"));
                     return true;
                 case "RULES":
-                    // receives the board’s rules
-                    Program.Outbox.SendReply(Program.LoadMailMessage(Name + "_rules"));
+                    // sets the rules if an owner, otherwise receives the board’s rules
+                    if (user.Role == UserRole.Owner)
+                        SaveMailMessage(message);
+                    else
+                        Program.Outbox.SendReply(Program.LoadMailMessage(Name + "_rules"));
+                    return true;
+                case "ADMIN":
+                    // sends the message to the moderators and owners
+                    Program.Outbox.ForwardMessage(message, GetUsersOfRole(UserRole.Mod).Select(u => u.MailboxAddress).ToList());
+
                     return true;
             }
 
-            return false;
-        }
-
-        /// <summary>
-        /// Handles non-owner commands
-        /// </summary>
-        /// <param name="command">User command</param>
-        /// <param name="user">User calling the command</param>
-        /// <returns>Whether the command was handled</returns>
-        private bool HandleNonOwnerCommand(string command, User user)
-        {
-            switch (command.ToUpperInvariant())
+            // these commands require the user to be a member
+            if (user != null)
             {
-                case "LEAVE":
-                    // leaves the selected board
-                    RemoveUser(user.Address);
+                switch (commands[0])
+                {
+                    case "LEAVE":
+                        // leaves the selected board
+                        RemoveUser(user.Address);
 
-                    return true;
+                        return true;
+                    case "POINTS":
+                        // sets the board's point threshold for posting without verification
+                        if (commands.Length == 1 || user.Role != UserRole.Owner)
+                            return true;
+
+                        int points;
+                        if (int.TryParse(commands[1], out points))
+                            Points = points;
+
+                        return true;
+                    case "DEFAULTROLE":
+                        // sets the board's default role
+                        if (commands.Length == 1 || user.Role != UserRole.Owner)
+                            return true;
+
+                        UserRole newRole;
+                        if (Enum.TryParse(commands[1], true, out newRole))
+                            DefaultUserRole = newRole;
+
+                        return true;
+                    case "TAGS":
+                        // sets the board's tags
+                        if (commands.Length == 1 || user.Role != UserRole.Owner)
+                            return true;
+
+                        Tags = new HashSet<string>(commands[1].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+                        return true;
+                    case "GUEST":
+                    case "SUBSCRIBER":
+                    case "MOD":
+                    case "OWNER":
+                        // makes a user an owner
+                        if (commands.Length == 1 || user.Role != UserRole.Owner)
+                            return true;
+
+                        var target = Users.FirstOrDefault(u => u.Name == commands[1]);
+
+                        if (target != null)
+                        {
+                            UserRole newRoll;
+                            if (Enum.TryParse(commands[0], true, out newRoll))
+                                target.Role = newRoll;
+                        }
+
+                        return true;
+                    default:
+                        if (!string.IsNullOrEmpty(message.InReplyTo))
+                        {
+                            // message is being reported as against the board's rules
+                            if (user.Role >= UserRole.Mod)
+                            {
+                                // report the user
+                                Report(message.ResentReplyTo.First().Name);
+                            }
+                            else
+                            {
+                                // forward to the mods so they can validate the report
+                                Program.Outbox.ForwardMessage(message, GetUsersOfRole(UserRole.Mod).Select(u => u.MailboxAddress).ToList());
+                            }
+
+                            return true;
+                        }
+                        break;
+                }
             }
 
-            return false;
-        }
-
-        /// <summary>
-        /// Handles owner commands
-        /// </summary>
-        /// <param name="commandArray">User commands</param>
-        /// <param name="role">User role of caller</param>
-        /// <returns>Whether the command was handled</returns>
-        private bool HandleOwnerCommand(string[] commandArray, UserRole role)
-        {
-            switch (commandArray[0].ToUpperInvariant())
-            {
-                case "POINTS":
-                    // sets the board's point threshold for posting without verification
-                    if (commandArray.Length == 1 || role != UserRole.Owner)
-                        return true;
-
-                    int points;
-                    if (int.TryParse(commandArray[1], out points))
-                        Points = points;
-
-                    return true;
-                case "DEFAULTROLE":
-                    // sets the board's default role
-                    if (commandArray.Length == 1 || role != UserRole.Owner)
-                        return true;
-
-                    UserRole newRole;
-                    if (Enum.TryParse(commandArray[1], true, out newRole))
-                        DefaultUserRole = newRole;
-
-                    return true;
-                case "TAGS":
-                    // sets the board's tags
-                    if (commandArray.Length == 1 || role != UserRole.Owner)
-                        return true;
-
-                    Tags = new HashSet<string>(commandArray[1].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
-                    return true;
-                case "GUEST":
-                case "SUBSCRIBER":
-                case "MOD":
-                case "OWNER":
-                    // makes a user an owner
-                    if (commandArray.Length == 1 || role != UserRole.Owner)
-                        return true;
-
-                    var target = Users.FirstOrDefault(u => u.Name == commandArray[1]);
-
-                    if (target != null)
-                    {
-                        UserRole newRoll;
-                        if (Enum.TryParse(commandArray[0], true, out newRoll))
-                            target.Role = newRoll;
-                    }
-
-                    return true;
-            }
+            // new post or private message
+            Post(message);
 
             return false;
         }

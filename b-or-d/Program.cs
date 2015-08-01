@@ -383,41 +383,8 @@ namespace B_or_d
                     }
                     else
                     {
-                        if (board.HandleCommand(message.Subject, GetAddress(message.From[0])))
+                        if (board.HandleMessage(message))
                             SaveDB();
-                        else
-                        {
-                            if (message.Subject.ToUpperInvariant() == "ADMIN")
-                            {
-                                // sends the message to the moderators and owners
-                                Outbox.ForwardMessage(message, board.GetUsersOfRole(UserRole.Mod).Select(u => u.MailboxAddress).ToList());
-
-                            }
-                            else
-                            {
-                                if (string.IsNullOrEmpty(message.InReplyTo))
-                                {
-                                    // new post
-                                    board.Post(message);
-                                    SaveDB();
-                                }
-                                else
-                                {
-                                    // check if the user is a mod or owner
-                                    if (Context.Users.FirstOrDefault(u => u.Address == message.Sender.Address && u.Board == board)?.Role == UserRole.Mod)
-                                    {
-                                        // report the user
-                                        board.Report(message.Sender.Address);
-                                        SaveDB();
-                                    }
-                                    else
-                                    {
-                                        // forward to the mods so they can validate the report
-                                        Outbox.ForwardMessage(message, board.GetUsersOfRole(UserRole.Mod).Select(u => u.MailboxAddress).ToList());
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
