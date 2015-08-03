@@ -347,14 +347,14 @@ namespace B_or_d
             {
                 case "JOIN":
                     // joins the selected board
-                    AddUser(user.Address);
+                    AddUser(Program.GetAddress(message.From[0]));
 
                     // send the rules to the new user
                     Program.Outbox.SendReply(Program.LoadMailMessage(Name + "_rules"));
                     return true;
                 case "RULES":
                     // sets the rules if an owner, otherwise receives the board’s rules
-                    if (user.Role == UserRole.Owner)
+                    if (user?.Role == UserRole.Owner)
                         SaveMailMessage(message);
                     else
                         Program.Outbox.SendReply(Program.LoadMailMessage(Name + "_rules"));
@@ -411,7 +411,7 @@ namespace B_or_d
                         if (commands.Length == 1 || user.Role != UserRole.Owner)
                             return true;
 
-                        var target = Users.FirstOrDefault(u => u.Name == commands[1]);
+                        var target = Users.FirstOrDefault(u => u.Name.ToUpperInvariant() == commands[1]);
 
                         if (target != null)
                         {
