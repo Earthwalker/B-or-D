@@ -181,7 +181,7 @@ namespace B_or_d.Tests
                 user.Role = UserRole.Subscriber;
                 message = MimeMessage.CreateFromMailMessage(originalMessage);
                 board.Post(message);
-                Assert.IsTrue(Program.GetAddress(Program.Outbox.Messages.Dequeue().To.First()) == "owner@mail.local", "Unverified subscriber post");
+                Assert.IsTrue(Program.GetAddress(Program.Outbox.Messages.Dequeue().To.FirstOrDefault()) == "owner@mail.local", "Unverified subscriber post");
 
                 // verified subscriber post
                 user.Points = board.Points;
