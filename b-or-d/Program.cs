@@ -305,7 +305,7 @@ namespace B_or_d
         /// <returns>Address of the internet address</returns>
         public static string GetAddress(InternetAddress address)
         {
-            return ((MailboxAddress)address).Address;
+            return (address as MailboxAddress)?.Address ?? string.Empty;
         }
 
         /// <summary>
