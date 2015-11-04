@@ -8,9 +8,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "b-or-dTests", "b-or-dTests\b-or-dTests.csproj", "{05CA321F-3A71-458F-9E86-C94FA7F447F0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5F27FDDC-3C52-4547-9947-D525C28437C3}"
-	ProjectSection(SolutionItems) = preProject
-		RuleSet.ruleset = RuleSet.ruleset
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
