@@ -16,103 +16,136 @@ namespace B_or_d
     using SharpConfig;
 
     /// <summary>
-    /// Main program
+    /// Main program.
     /// </summary>
     public static class Program
     {
         /// <summary>
-        /// Messages to be processed
+        /// Path to our config file.
+        /// </summary>
+        private static readonly string ConfigPath = "config.ini";
+
+        /// <summary>
+        /// Path to our adjectives list file.
+        /// </summary>
+        private static readonly string AdjectivesListPath = "adjectives.txt";
+
+        /// <summary>
+        /// Path to our nouns list file.
+        /// </summary>
+        private static readonly string NounsListPath = "nouns.txt";
+
+        /// <summary>
+        /// Messages to be processed.
         /// </summary>
         private static Queue<MimeMessage> messages = new Queue<MimeMessage>();
 
         /// <summary>
-        /// Whether we should have boards use the +something format
+        /// Whether we should have boards use the +something format.
         /// </summary>
-        private static bool UseAlias = true;
+        private static bool useAlias = true;
 
         /// <summary>
-        /// Inbox interval loaded from config
+        /// Inbox interval loaded from config.
         /// </summary>
         private static int inboxInterval = 0;
 
         /// <summary>
-        /// Outbox interval loaded from config
+        /// Outbox interval loaded from config.
         /// </summary>
         private static int outboxInterval = 0;
 
         /// <summary>
-        /// Random number generator
+        /// Random number generator.
         /// </summary>
         private static Random rng = new Random();
 
         /// <summary>
-        /// Path  to our config file
+        /// Gets the adjectives used in user name generation.
         /// </summary>
-        private static readonly string configPath = "config.ini";
-
-        /// <summary>
-        /// Path  to our adjectives list file
-        /// </summary>
-        private static readonly string adjectivesListPath = "adjectives.txt";
-
-        /// <summary>
-        /// Path  to our nouns list file
-        /// </summary>
-        private static readonly string nounsListPath = "nouns.txt";
-
-        /// <summary>
-        /// Adjectives used in generating user names
-        /// </summary>
+        /// <value>
+        /// The adjectives.
+        /// </value>
         public static Collection<string> Adjectives { get; private set; }
 
         /// <summary>
-        /// Nouns used in generating user names
+        /// Gets the nouns used in user name generation.
         /// </summary>
+        /// <value>
+        /// The nouns.
+        /// </value>
         public static Collection<string> Nouns { get; private set; }
 
         /// <summary>
-        /// Context for the underlying database
+        /// Gets or sets the context for the underlying database
         /// </summary>
+        /// <value>
+        /// The database context.
+        /// </value>
         public static BoardContext Context { get; set; }
 
         /// <summary>
-        /// Inbox to handle receiving messages
+        /// Gets the inbox handling incoming messages.
         /// </summary>
+        /// <value>
+        /// The inbox.
+        /// </value>
         public static Inbox Inbox { get; } = new Inbox();
 
         /// <summary>
-        /// Outbox to handle sending messages
+        /// Gets the outbox handling outgoing messages.
         /// </summary>
+        /// <value>
+        /// The outbox.
+        /// </value>
         public static Outbox Outbox { get; } = new Outbox();
 
         /// <summary>
-        /// UserName of the account to check
+        /// Gets or sets the user name of the email account.
         /// </summary>
-        public static string UserName { get; set; } // = string.Empty;
+        /// <value>
+        /// The user name.
+        /// </value>
+        public static string UserName { get; set; }
 
         /// <summary>
-        /// Host of the mail server
+        /// Gets or sets the host name of the email account.
         /// </summary>
-        public static string Host { get; set; } // = "localhost";
+        /// <value>
+        /// The host name.
+        /// </value>
+        public static string Host { get; set; }
 
         /// <summary>
-        /// Host pop port to check
+        /// Gets or sets the pop port of the host.
         /// </summary>
-        public static int PopPort { get; set; } // = 995;
+        /// <value>
+        /// The pop port of the host.
+        /// </value>
+        public static int PopPort { get; set; }
 
         /// <summary>
-        /// Host smtp port to check
+        /// Gets or sets the SMTP port of the host.
         /// </summary>
-        public static int SmtpPort { get; set; } // = 465;
+        /// <value>
+        /// The SMTP port of the host.
+        /// </value>
+        public static int SmtpPort { get; set; }
 
         /// <summary>
-        /// Password of the account to check
+        /// Gets or sets the password of the email account.
         /// </summary>
-        public static string Password { get; set; } // = "password";
+        /// <value>
+        /// The password.
+        /// </value>
+        public static string Password { get; set; }
 
         /// <summary>
-        /// Whether the program is running
+        /// Gets or sets a value indicating whether this <see cref="Program" /> is running.
         /// </summary>
+        /// <value>
+        /// <c>true</c> if running; otherwise, <c>false</c>.
+        /// </value>
         public static bool Running { get; set; } = false;
 
         /// <summary>
@@ -135,7 +168,7 @@ namespace B_or_d
                 LoadConfig();
 
                 // load word lists
-                PopulateWordlists(nounsListPath, adjectivesListPath);
+                PopulateWordlists(NounsListPath, AdjectivesListPath);
 
                 // start timers for sending and receiving messages
                 StartInboxTimer(inboxInterval);
@@ -156,13 +189,13 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Load config file
+        /// Load config file.
         /// </summary>
-        /// <param name="fileName">File name</param>
+        /// <param name="fileName">File name.</param>
         public static void LoadConfig(string fileName = null)
         {
             if (string.IsNullOrEmpty(fileName))
-                fileName = configPath;
+                fileName = ConfigPath;
 
             // make sure the config file exists
             if (!File.Exists(fileName))
@@ -188,17 +221,17 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Loads word lists used for generating user names
+        /// Loads word lists used for generating user names.
         /// </summary>
-        /// <param name="adjectivesFileName">File containing adjectives</param>
-        /// <param name="nounsFileName">File containing nouns</param>
+        /// <param name="adjectivesFileName">File containing adjectives.</param>
+        /// <param name="nounsFileName">File containing nouns.</param>
         public static void PopulateWordlists(string adjectivesFileName, string nounsFileName)
         {
             if (string.IsNullOrEmpty(adjectivesFileName))
-                adjectivesFileName = adjectivesListPath;
+                adjectivesFileName = AdjectivesListPath;
 
             if (string.IsNullOrEmpty(nounsFileName))
-                nounsFileName = nounsListPath;
+                nounsFileName = NounsListPath;
 
             // make sure the adjectives file exists
             if (!File.Exists(adjectivesFileName))
@@ -216,10 +249,10 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Loads a saved message from a file
+        /// Loads a saved message from a file.
         /// </summary>
-        /// <param name="messageName">Message name</param>
-        /// <returns>Loaded message</returns>
+        /// <param name="messageName">Message name.</param>
+        /// <returns>The loaded message.</returns>
         public static MimeMessage LoadMailMessage(string messageName)
         {
             if (string.IsNullOrWhiteSpace(messageName))
@@ -246,21 +279,21 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Gets the julian day number
+        /// Gets the julian day number.
         /// </summary>
-        /// <param name="date">Date to convert</param>
-        /// <returns>Julian day</returns>
+        /// <param name="date">Date to convert.</param>
+        /// <returns>The julian day.</returns>
         public static int GetDayNumber(DateTime date)
         {
             return (int)(date - new DateTime(1, 1, 1)).TotalDays + 1;
         }
 
         /// <summary>
-        /// Formats the mailbox address
+        /// Formats the mailbox address.
         /// </summary>
-        /// <param name="sender">Sender of the mail</param>
-        /// <param name="displayName">Name to display</param>
-        /// <returns></returns>
+        /// <param name="sender">Sender of the mail.</param>
+        /// <param name="displayName">Name to display.</param>
+        /// <returns>The formatted <see cref="MailboxAddress"/>.</returns>
         public static MailboxAddress FormatMailboxAddress(string sender, string displayName = null)
         {
             if (string.IsNullOrEmpty(displayName))
@@ -272,20 +305,20 @@ namespace B_or_d
             if (string.IsNullOrEmpty(sender))
                 return new MailboxAddress(displayName, UserName + '@' + Host);
 
-            if (UseAlias)
+            if (useAlias)
                 return new MailboxAddress(displayName, UserName + '+' + sender + '@' + Host);
             else
                 return new MailboxAddress(displayName, sender + '@' + Host);
         }
 
         /// <summary>
-        /// Gets the sender from and InternetAddress
+        /// Gets the sender from an <see cref="InternetAddress"/>.
         /// </summary>
-        /// <param name="address">InternetAddress to parse</param>
-        /// <returns></returns>
+        /// <param name="address"><see cref="InternetAddress"/> to parse.</param>
+        /// <returns>The sender of an <see cref="InternetAddress"/>.</returns>
         public static string GetSender(InternetAddress address)
         {
-            if (UseAlias)
+            if (useAlias)
             {
                 var sender = GetAddress(address).Split('@')[0].Split('+');
 
@@ -299,19 +332,19 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Gets the address of an internet address
+        /// Gets the address of an <see cref="InternetAddress"/>.
         /// </summary>
-        /// <param name="address">Internet address</param>
-        /// <returns>Address of the internet address</returns>
+        /// <param name="address"><see cref="InternetAddress"/> to parse.</param>
+        /// <returns>Address of the <see cref="InternetAddress"/>.</returns>
         public static string GetAddress(InternetAddress address)
         {
             return (address as MailboxAddress)?.Address ?? string.Empty;
         }
 
         /// <summary>
-        /// Starts the timer for the inbox to check for messages
+        /// Starts the timer for the inbox to check for messages.
         /// </summary>
-        /// <param name="intervalSeconds"></param>
+        /// <param name="intervalSeconds">Interval time in seconds.</param>
         public static void StartInboxTimer(int intervalSeconds)
         {
             // set up inbox events
@@ -320,21 +353,20 @@ namespace B_or_d
             Inbox.StartTimer(intervalSeconds);
         }
 
-
         /// <summary>
-        /// Starts the timer for the outbox to empty itself
+        /// Starts the timer for the outbox to empty itself.
         /// </summary>
-        /// <param name="intervalSeconds"></param>
+        /// <param name="intervalSeconds">Interval time in seconds.</param>
         public static void StartOutboxTimer(int intervalSeconds)
         {
             Outbox.StartTimer(intervalSeconds);
         }
 
         /// <summary>
-        /// Shuffles a list based off of the Fisher-Yates shuffle
+        /// Shuffles a list based off of the Fisher-Yates shuffle.
         /// </summary>
-        /// <typeparam name="T">List type</typeparam>
-        /// <param name="list">List to shuffle</param>
+        /// <typeparam name="T">List type.</typeparam>
+        /// <param name="list">List to shuffle.</param>
         public static void Shuffle<T>(this List<T> list)
         {
             if (list == null)
@@ -352,7 +384,7 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Save changes to the underlying database
+        /// Save changes to the underlying database.
         /// </summary>
         private static void SaveDB()
         {
@@ -362,7 +394,7 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Handles messages
+        /// Handles messages.
         /// </summary>
         private static void HandleMessages()
         {
@@ -391,10 +423,10 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Handle general commands
+        /// Handle general commands.
         /// </summary>
-        /// <param name="command">User command</param>
-        /// <param name="userAddress">User address calling the command</param>
+        /// <param name="command">User command.</param>
+        /// <param name="userAddress">User address calling the command.</param>
         private static void HandleCommand(string command, string userAddress)
         {
             var commands = command.ToUpperInvariant().Split(':');
@@ -404,6 +436,7 @@ namespace B_or_d
                 case "JOIN":
                     // receives a list of popular boards and main rules
                     Outbox.SendReply(LoadMailMessage("rules"));
+
                     // TODO: append a list popular boards to the reply
                     return;
                 case "LEAVE":
@@ -447,10 +480,10 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// New messages event
+        /// New messages event.
         /// </summary>
-        /// <param name="sender">Inbox that called the event</param>
-        /// <param name="e">Event arguments</param>
+        /// <param name="sender">Inbox that called the event.</param>
+        /// <param name="e">Event arguments.</param>
         private static void Inbox_NewMessagesEvent(object sender, EventArgs e)
         {
             var newMessages = ((Inbox)sender).Messages;

@@ -4,27 +4,27 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Timers;
-using MailKit.Net.Pop3;
-using MailKit.Security;
-using MimeKit;
-
 namespace B_or_d
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Timers;
+    using MailKit.Net.Pop3;
+    using MailKit.Security;
+    using MimeKit;
+
     /// <summary>
-    /// Handles receiving mail messages
+    /// Handles receiving mail messages.
     /// </summary>
     public class Inbox : IDisposable
     {
         /// <summary>
-        /// Unique ids of the messages we've seen
+        /// Unique ids of the messages we've seen.
         /// </summary>
         private HashSet<string> seenUIDs = new HashSet<string>();
 
         /// <summary>
-        /// Timer to check for new messages
+        /// Timer to check for new messages.
         /// </summary>
         private Timer timer;
 
@@ -36,11 +36,25 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Inbox"/> class
+        /// Event to signal we have new messages.
         /// </summary>
-        /// <param name="frequency">Frequency to check messages</param>
+        public event EventHandler NewMessagesEvent;
+
+        /// <summary>
+        /// Gets the messages to be sent.
+        /// </summary>
+        /// <value>
+        /// The messages to be sent.
+        /// </value>
+        public Queue<MimeMessage> Messages { get; } = new Queue<MimeMessage>();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Inbox"/> class.
+        /// </summary>
+        /// <param name="frequency">Frequency to check messages.</param>
         public void StartTimer(int frequency)
         {
+            // ensure the frequency is in the required range
             if (frequency <= 0 || frequency >= int.MaxValue)
                 throw new ArgumentOutOfRangeException("frequency");
 
@@ -56,17 +70,7 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Event to signal we have new messages
-        /// </summary>
-        public event EventHandler NewMessagesEvent;
-
-        /// <summary>
-        /// Messages to be sent
-        /// </summary>
-        public Queue<MimeMessage> Messages { get; } = new Queue<MimeMessage>();
-
-        /// <summary>
-        /// Fetch messages not seen from the server
+        /// Fetch messages not seen from the server.
         /// </summary>
         public void FetchNewMessages()
         {
@@ -101,7 +105,7 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Implements IDisposable.
+        /// Implements <see cref="IDisposable"/>.
         /// </summary>
         public void Dispose()
         {
@@ -110,19 +114,19 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Disposes resources
+        /// Disposes resources.
         /// </summary>
-        /// <param name="disposing">Whether to dispose managed resources</param>
+        /// <param name="disposing">Whether to dispose managed resources.</param>
         protected virtual void Dispose(bool disposing)
         {
             timer.Dispose();
         }
 
         /// <summary>
-        /// Event to receive new messages
+        /// Event to receive new messages.
         /// </summary>
-        /// <param name="source">Source object</param>
-        /// <param name="e">Event arguments</param>
+        /// <param name="source">Source object.</param>
+        /// <param name="e">Event arguments.</param>
         private void ReceiveMessages(object source, ElapsedEventArgs e)
         {
             // clear our message queue

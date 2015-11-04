@@ -14,16 +14,18 @@ namespace B_or_d.Tests
     using MimeKit;
 
     /// <summary>
-    /// Program-wide tests
+    /// Program-wide tests.
     /// </summary>
     [TestClass]
     public class ProgramTests
     {
-        // holds the messages we receive
+        /// <summary>
+        /// Holds the messages we receive.
+        /// </summary>
         private static Queue<MimeMessage> messages = new Queue<MimeMessage>();
 
         /// <summary>
-        /// Tests sending and receiving mail
+        /// Tests sending and receiving mail.
         /// </summary>
         [TestMethod]
         public void SendAndReceiveMailTest()
@@ -55,7 +57,7 @@ namespace B_or_d.Tests
         }
 
         /// <summary>
-        /// Tests using the join board command
+        /// Tests using the join board command.
         /// </summary>
         [TestMethod]
         public void JoinBoardTest()
@@ -85,7 +87,7 @@ namespace B_or_d.Tests
         }
 
         /// <summary>
-        /// Tests using the join command to create a board
+        /// Tests using the join command to create a board.
         /// </summary>
         [TestMethod]
         public void CreateBoardTest()
@@ -115,7 +117,7 @@ namespace B_or_d.Tests
         }
 
         /// <summary>
-        /// Tests using the leave board command
+        /// Tests using the leave board command.
         /// </summary>
         [TestMethod]
         public void LeaveBoardTest()
@@ -150,7 +152,7 @@ namespace B_or_d.Tests
         }
 
         /// <summary>
-        /// Tests using the leave command to delete a board
+        /// Tests using the leave command to delete a board.
         /// </summary>
         [TestMethod]
         public void DeleteBoardTest()
@@ -184,7 +186,7 @@ namespace B_or_d.Tests
         }
 
         /// <summary>
-        /// Tests using the admin command
+        /// Tests using the admin command.
         /// </summary>
         [TestMethod]
         public void AdminCommand()
@@ -221,7 +223,7 @@ namespace B_or_d.Tests
         }
 
         /// <summary>
-        /// Tests using the join command
+        /// Tests using the join command.
         /// </summary>
         [TestMethod]
         public void JoinCommandTest()
@@ -253,7 +255,7 @@ namespace B_or_d.Tests
         }
 
         /// <summary>
-        /// Tests using the leave command
+        /// Tests using the leave command.
         /// </summary>
         [TestMethod]
         public void LeaveCommandTest()
@@ -292,7 +294,7 @@ namespace B_or_d.Tests
         }
 
         /// <summary>
-        /// Tests using the rules command
+        /// Tests using the rules command.
         /// </summary>
         [TestMethod]
         public void RulesCommandTest()
@@ -324,7 +326,7 @@ namespace B_or_d.Tests
         }
 
         /// <summary>
-        /// Tests using the boards command
+        /// Tests using the boards command.
         /// </summary>
         [TestMethod]
         public void BoardsCommandTest()
@@ -379,7 +381,7 @@ namespace B_or_d.Tests
         }
 
         /// <summary>
-        /// Tests the help command
+        /// Tests the help command.
         /// </summary>
         [TestMethod]
         public void HelpCommandTest()
@@ -411,17 +413,24 @@ namespace B_or_d.Tests
         }
 
         /// <summary>
-        /// Timer to tell tests to end
+        /// Timer to tell tests to end.
         /// </summary>
-        /// <param name="sender"> Object that called the event</param>
-        /// <param name="e">Event arguments</param>
+        /// <param name="sender">Object that called the event.</param>
+        /// <param name="e">Event arguments.</param>
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             ((Timer)sender).Stop();
             Assert.Fail("Time expired");
         }
 
-        private static MimeMessage SendMessage(string subject, string from, string to)
+        /// <summary>
+        /// Sends a test message.
+        /// </summary>
+        /// <param name="subject">The subject.</param>
+        /// <param name="from">From address.</param>
+        /// <param name="to">To address.</param>
+        /// <returns>The created message.</returns>
+        private MimeMessage SendMessage(string subject, string from, string to)
         {
             var message = new MimeMessage();
 

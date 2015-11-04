@@ -92,7 +92,9 @@
   <ItemGroup>
     <Compile Include="Board.cs" />
     <Compile Include="BoardContext.cs" />
-    <Compile Include="EmailValidator.cs" />
+    <Compile Include="EmailValidator.cs">
+      <ExcludeFromStyleCop>True</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="Inbox.cs" />
     <Compile Include="Outbox.cs" />
     <Compile Include="Program.cs" />

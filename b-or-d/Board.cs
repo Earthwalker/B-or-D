@@ -15,41 +15,46 @@ namespace B_or_d
     using MimeKit;
 
     /// <summary>
-    /// Determines which permissions are granted to users
+    /// Determines which permissions are granted to users.
     /// </summary>
     public enum UserRole
     {
         /// <summary>
-        /// Receives posts
+        /// Receives posts.
         /// </summary>
         Guest,
 
         /// <summary>
-        /// Allowed to post content
+        /// Allowed to post content.
         /// </summary>
         Subscriber,
 
         /// <summary>
-        /// Approves posts and removes offending content
+        /// Approves posts and removes offending content.
         /// </summary>
         Mod,
 
         /// <summary>
-        /// Oversees the board, while also appointing and removing mods
+        /// Oversees the board, while also appointing and removing mods.
         /// </summary>
         Owner,
 
         /// <summary>
-        /// Number of user roles
+        /// Number of user roles.
         /// </summary>
         Number
     }
 
     /// <summary>
-    /// A place where users can join to create and share posts within the rules the owners have set
+    /// A place where users can join to create and share posts within the rules the owners have set.
     /// </summary>
     public class Board
     {
+        /// <summary>
+        /// Holds all message ids (key) waiting to be moderated by the selected mod (value).
+        /// </summary>
+        private Dictionary<string, string> modHandledMessages = new Dictionary<string, string>();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Board"/> class.
         /// </summary>
@@ -61,57 +66,70 @@ namespace B_or_d
         /// <summary>
         /// Initializes a new instance of the <see cref="Board"/> class.
         /// </summary>
-        /// <param name="name">Name of the board</param>
+        /// <param name="name">The name of the board.</param>
         public Board(string name)
         {
             Name = name;
 
-            // board name must be not empty and unique
+            // board name must be unique and not empty
             if (!string.IsNullOrEmpty(name) && Program.Context.Boards.Find(name) == null)
                 Program.Context.Boards.Add(this);
         }
 
         /// <summary>
-        /// Name of the board
+        /// Gets or sets the name of the board. Used as the key for the database.
         /// </summary>
+        /// <value>
+        /// The name of the board.
+        /// </value>
         [Key]
         public string Name { get; set; }
 
         /// <summary>
-        /// Board tags used for discovery
+        /// Gets the board tags used for discovery.
         /// </summary>
+        /// <value>
+        /// The board tags.
+        /// </value>
         public HashSet<string> Tags { get; private set; } = new HashSet<string>();
 
         /// <summary>
-        /// Points required to post without verification. -1 for never.
+        /// Gets the points required to post without verification. -1 for never.
         /// </summary>
+        /// <value>
+        /// The points.
+        /// </value>
         public int Points { get; private set; }
 
         /// <summary>
-        /// Whether this board requires owner approval to receive posts
+        /// Gets or sets a value indicating whether this <see cref="Board"/> requires owner approval to receive posts.
         /// </summary>
+        /// <value>
+        /// Whether the board is private.
+        /// </value>
         public bool Private { get; set; }
 
         /// <summary>
-        /// Default user role
+        /// Gets the default user role for new members.
         /// </summary>
+        /// <value>
+        /// The default user role.
+        /// </value>
         public UserRole DefaultUserRole { get; private set; } = UserRole.Subscriber;
 
         /// <summary>
-        /// Users of the board
+        /// Gets the users of the board.
         /// </summary>
+        /// <value>
+        /// The users of the board.
+        /// </value>
         public virtual ICollection<User> Users { get; private set; }
 
         /// <summary>
-        /// Holds all message ids (key) waiting to be moderated by the selected mod (value)
+        /// Adds a new user to the board.
         /// </summary>
-        private Dictionary<string, string> modHandledMessages = new Dictionary<string, string>();
-
-        /// <summary>
-        /// Adds a new user to the board
-        /// </summary>
-        /// <param name="address">User address</param>
-        /// <returns>Created user</returns>
+        /// <param name="address">User address.</param>
+        /// <returns>The created user.</returns>
         public User AddUser(string address)
         {
             // make sure address is valid
@@ -138,10 +156,10 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Removes a user from the board
+        /// Removes a user from the board.
         /// </summary>
-        /// <param name="address">>User address</param>
-        /// <returns>Whether the user was removed</returns>
+        /// <param name="address">User address.</param>
+        /// <returns>Whether the user was removed.</returns>
         public bool RemoveUser(string address)
         {
             // make sure address is valid
@@ -181,6 +199,7 @@ namespace B_or_d
 
                 // TODO: notify board members that an owner has left the board
             }
+
             Program.Context.Users.Remove(user);
 
             Console.WriteLine("Removed user " + address + " from board " + Name);
@@ -189,10 +208,10 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Gets a list of users off a given role or higher
+        /// Gets a list of users off a given role or higher.
         /// </summary>
-        /// <param name="role">User roles to find</param>
-        /// <returns>List of matching users</returns>
+        /// <param name="role">Lowest user role to find.</param>
+        /// <returns>A list of matching users.</returns>
         public IEnumerable<User> GetUsersOfRole(UserRole role)
         {
             if (role < 0 || role >= UserRole.Number)
@@ -202,11 +221,12 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// New post
+        /// Receive a new post.
         /// </summary>
-        /// <param name="message">Message to post</param>
+        /// <param name="message">The received message.</param>
         public void Post(MimeMessage message)
         {
+            // ensure the message isn't null
             if (message == null)
                 return;
 
@@ -251,6 +271,7 @@ namespace B_or_d
                             // send the message out to everyone
                             Program.Outbox.ForwardMessage(message, GetUsersOfRole(UserRole.Guest).Select(u => u.MailboxAddress).ToList());
                         }
+
                         return;
                     case UserRole.Mod: // unrestricted posting and sometimes on behalf of non-verified users
                         // check if this is a mod-approved message
@@ -302,10 +323,10 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Reports a user
+        /// Reports a user.
         /// </summary>
-        /// <param name="address">Address of the user</param>
-        /// <returns>Whether the user was reported</returns>
+        /// <param name="address">Address of the user.</param>
+        /// <returns>Whether the user was reported.</returns>
         public bool Report(string address)
         {
             // make sure address is valid
@@ -328,11 +349,10 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Handles commands
+        /// Handles a message.
         /// </summary>
-        /// <param name="command">User command</param>
-        /// <param name="userAddress">User address calling the command</param>
-        /// <returns>Whether the command was handled</returns>
+        /// <param name="message">The message.</param>
+        /// <returns>Whether the message was handled.</returns>
         public bool HandleMessage(MimeMessage message)
         {
             // ensure message is not null
@@ -438,6 +458,7 @@ namespace B_or_d
 
                             return true;
                         }
+
                         break;
                 }
             }
@@ -449,24 +470,9 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Saves a message to a file
+        /// Gets which mod should handle the next message.
         /// </summary>
-        /// <param name="message">Message to save</param>
-        private void SaveMailMessage(MimeMessage message)
-        {
-            if (string.IsNullOrWhiteSpace(message.Subject))
-            {
-                Trace.TraceError("Subject is empty");
-                return;
-            }
-
-            message.WriteTo(Name + '_' + message.Subject);
-        }
-
-        /// <summary>
-        /// Gets which mod should handle the next message
-        /// </summary>
-        /// <returns>Mod address</returns>
+        /// <returns>The address of the selected mod.</returns>
         public string GetNextMod()
         {
             // get all the mods as a list
@@ -497,6 +503,21 @@ namespace B_or_d
             modMessages.OrderBy(m => m.Value);
 
             return modMessages.First().Key;
+        }
+
+        /// <summary>
+        /// Saves a message to a file.
+        /// </summary>
+        /// <param name="message">Message to save.</param>
+        private void SaveMailMessage(MimeMessage message)
+        {
+            if (string.IsNullOrWhiteSpace(message.Subject))
+            {
+                Trace.TraceError("Subject is empty");
+                return;
+            }
+
+            message.WriteTo(Name + '_' + message.Subject);
         }
     }
 }

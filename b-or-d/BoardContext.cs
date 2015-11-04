@@ -9,18 +9,24 @@ namespace B_or_d
     using System.Data.Entity;
 
     /// <summary>
-    /// Database context
+    /// Database context.
     /// </summary>
     public class BoardContext : DbContext
     {
         /// <summary>
-        /// Users in the database
+        /// Gets or sets the users in the database.
         /// </summary>
+        /// <value>
+        /// The users in the database.
+        /// </value>
         public DbSet<User> Users { get; set; }
 
         /// <summary>
-        /// Boards in the database
+        /// Gets or sets the boards in the database.
         /// </summary>
+        /// <value>
+        /// The boards in the database.
+        /// </value>
         public DbSet<Board> Boards { get; set; }
     }
 }

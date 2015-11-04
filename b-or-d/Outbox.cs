@@ -14,19 +14,14 @@ namespace B_or_d
     using MimeKit;
 
     /// <summary>
-    /// Handles sending mail messages
+    /// Handles sending mail messages.
     /// </summary>
     public class Outbox : IDisposable
     {
         /// <summary>
-        /// Timer to send messages in the send queue
+        /// Timer to send messages in the send queue.
         /// </summary>
         private Timer timer;
-
-        /// <summary>
-        /// Messages to be sent
-        /// </summary>
-        public Queue<MimeMessage> Messages { get; private set; } = new Queue<MimeMessage>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Outbox"/> class.
@@ -36,11 +31,20 @@ namespace B_or_d
         }
 
         /// <summary>
+        /// Gets the messages to be sent.
+        /// </summary>
+        /// <value>
+        /// The messages to be sent.
+        /// </value>
+        public Queue<MimeMessage> Messages { get; private set; } = new Queue<MimeMessage>();
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Outbox"/> class.
         /// </summary>
-        /// <param name="frequency">Frequency to check messages</param>
+        /// <param name="frequency">Frequency to check messages.</param>
         public void StartTimer(int frequency)
         {
+            // ensure the frequency is in the required range
             if (frequency <= 0 || frequency >= int.MaxValue)
                 throw new ArgumentOutOfRangeException("frequency");
 
@@ -56,9 +60,9 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Sends a message
+        /// Sends a message.
         /// </summary>
-        /// <param name="message">Message to be sent</param>
+        /// <param name="message">Message to be sent.</param>
         public void SendMessage(MimeMessage message)
         {
             // add the message to the send queue
@@ -66,22 +70,23 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Forwards a message to one recipient
+        /// Forwards a message to one recipient.
         /// </summary>
-        /// <param name="message">Message to send</param>
-        /// <param name="to">Recipient off the message</param>
+        /// <param name="message">Message to send.</param>
+        /// <param name="to">Recipient off the message.</param>
         public void ForwardMessage(MimeMessage message, MailboxAddress to)
         {
             ForwardMessage(message, new List<MailboxAddress>() { to });
         }
 
         /// <summary>
-        /// Forwards a message to more than one recipient
+        /// Forwards a message to more than one recipient.
         /// </summary>
-        /// <param name="message">Message to send</param>
-        /// <param name="to">Recipient off the message</param>
+        /// <param name="message">Message to send.</param>
+        /// <param name="to">Recipient off the message.</param>
         public void ForwardMessage(MimeMessage message, List<MailboxAddress> to)
         {
+            // ensure the message and the to address aren't null
             if (message == null || to == null)
                 return;
 
@@ -100,12 +105,13 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Sends a reply from the selected recipients
+        /// Sends a reply from the selected recipients.
         /// </summary>
-        /// <param name="message">Reply message</param>
-        /// <param name="from">From address of the reply</param>
+        /// <param name="message">Reply message.</param>
+        /// <param name="from">From address of the reply.</param>
         public void SendReply(MimeMessage message, IEnumerable<MailboxAddress> from = null)
         {
+            // ensure the message isn't null
             if (message == null)
                 return;
 
@@ -129,7 +135,7 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Implements IDisposable.
+        /// Implements <see cref="IDisposable"/>.
         /// </summary>
         public void Dispose()
         {
@@ -138,19 +144,10 @@ namespace B_or_d
         }
 
         /// <summary>
-        /// Disposes resources
+        /// Event to send all messages.
         /// </summary>
-        /// <param name="disposing">Whether to dispose managed resources</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            timer.Dispose();
-        }
-
-        /// <summary>
-        /// Event to send all messages
-        /// </summary>
-        /// <param name="source">Source object</param>
-        /// <param name="e">Event arguments</param>
+        /// <param name="source">Source object.</param>
+        /// <param name="e">Event arguments.</param>
         public void SendMessages(object source, ElapsedEventArgs e)
         {
             if (Messages.Count == 0)
@@ -180,6 +177,15 @@ namespace B_or_d
 
             // start the timer again
             timer?.Start();
+        }
+
+        /// <summary>
+        /// Disposes resources.
+        /// </summary>
+        /// <param name="disposing">Whether to dispose managed resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            timer.Dispose();
         }
     }
 }
