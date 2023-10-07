@@ -106,3 +106,6 @@ b-or-d requires the configuration file "config.ini" to be located in the exe dir
 * Create tests for new features
 * Run tests after new changes. If some don't pass, either fix the problem or note the problem according to the commit guidelines.
 * Follow Git Commit Guidelines established here: https://github.com/angular/angular.js/blob/master/CONTRIBUTING.md#commit
+
+## License
+This work is licensed under a [Creative Commons Attribution-NonCommercial 4.0 International License.](https://creativecommons.org/licenses/by-nc/4.0/)
