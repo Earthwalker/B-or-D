@@ -8,6 +8,7 @@ namespace B_or_d
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Timers;
     using MailKit.Net.Pop3;
     using MailKit.Security;
@@ -77,30 +78,37 @@ namespace B_or_d
             // the client disconnects from the server when being disposed
             using (Pop3Client client = new Pop3Client())
             {
-                client.Connect("pop." + Program.Host, Program.PopPort, SecureSocketOptions.SslOnConnect);
-                client.AuthenticationMechanisms.Remove("XOAUTH2"); // we don't have an OAuth2 token
-                client.Authenticate(Program.UserName + '@' + Program.Host, Program.Password);
-
-                // get message count
-                var messageUids = client.GetMessageUids();
-
-                for (int i = 0; i < messageUids.Count; i++)
+                try
                 {
-                    // check if the message has been seen
-                    if (!seenUIDs.Contains(messageUids[i]))
+                    client.Connect("pop." + Program.Host, Program.PopPort, SecureSocketOptions.SslOnConnect);
+                    client.AuthenticationMechanisms.Remove("XOAUTH2"); // we don't have an OAuth2 token
+                    client.Authenticate(Program.UserName + '@' + Program.Host, Program.Password);
+
+                    // get message count
+                    var messageUids = client.GetMessageUids();
+
+                    for (int i = 0; i < messageUids.Count; i++)
                     {
-                        // add the message to our queue
-                        Messages.Enqueue(client.GetMessage(i));
+                        // check if the message has been seen
+                        if (!seenUIDs.Contains(messageUids[i]))
+                        {
+                            // add the message to our queue
+                            Messages.Enqueue(client.GetMessage(i));
 
-                        // delete the message from the server
-                        client.DeleteMessage(i);
+                            // delete the message from the server
+                            client.DeleteMessage(i);
 
-                        // add to the seen messages
-                        seenUIDs.Add(messageUids[i]);
+                            // add to the seen messages
+                            seenUIDs.Add(messageUids[i]);
+                        }
                     }
-                }
 
-                client.Disconnect(true);
+                    client.Disconnect(true);
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError(e.Message);
+                }
             }
         }
 

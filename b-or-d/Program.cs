@@ -205,17 +205,17 @@ namespace B_or_d
             var config = Configuration.LoadFromFile(fileName);
 
             // load server settings
-            UserName = config["Server"]["UserName"].GetValue<string>();
-            Host = config["Server"]["Host"].GetValue<string>();
-            PopPort = config["Server"]["PopPort"].GetValue<int>();
-            SmtpPort = config["Server"]["SmtpPort"].GetValue<int>();
-            Password = config["Server"]["Password"].GetValue<string>();
+            UserName = config["Server"]["UserName"].StringValue;
+            Host = config["Server"]["Host"].StringValue;
+            PopPort = config["Server"]["PopPort"].IntValue;
+            SmtpPort = config["Server"]["SmtpPort"].IntValue;
+            Password = config["Server"]["Password"].StringValue;
 
             // load inbox setting
-            inboxInterval = config["Inbox"]["InboxInterval"].GetValue<int>();
+            inboxInterval = config["Inbox"]["InboxInterval"].IntValue;
 
             // load outbox settings
-            outboxInterval = config["Outbox"]["OutboxInterval"].GetValue<int>();
+            outboxInterval = config["Outbox"]["OutboxInterval"].IntValue;
 
             Console.WriteLine("Loaded settings from " + fileName);
         }
